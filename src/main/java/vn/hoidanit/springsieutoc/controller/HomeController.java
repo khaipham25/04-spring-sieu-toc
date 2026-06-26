@@ -12,6 +12,8 @@
 package vn.hoidanit.springsieutoc.controller;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -32,5 +34,11 @@ public class HomeController {
 	@GetMapping("/")
 	public String index() {
 		return "Hello World from Spring Boot - @hoidanit devtool: " + name;
+	}
+
+	@GetMapping("/eric")
+	public ResponseEntity<String> demoAPI() {
+//		return new ResponseEntity<>("hello eric", HttpStatus.OK);
+		return ResponseEntity.status(HttpStatus.OK).body("Hello World from Spring Boot");
 	}
 }

@@ -11,54 +11,42 @@
 
 package vn.hoidanit.springsieutoc.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import java.time.Instant;
 
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name = "comments")
 public class Comment {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id; // object generic<> id == null
+	private Long id;
 
-	private String title;
-	private String createdAt;
-	private String updatedAt;
+	@NotBlank(message = "content không được để trống")
+	private String content;
 
-	public Long getId() {
-		return id;
-	}
+	private boolean isApproved = false;
 
-	public void setId(Long id) {
-		this.id = id;
-	}
+	private Instant createdAt;
 
-	public String getTitle() {
-		return title;
-	}
+	private Instant updatedAt;
 
-	public void setTitle(String title) {
-		this.title = title;
-	}
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "user_id")
+	private User user;
 
-	public String getCreatedAt() {
-		return createdAt;
-	}
-
-	public void setCreatedAt(String createdAt) {
-		this.createdAt = createdAt;
-	}
-
-	public String getUpdatedAt() {
-		return updatedAt;
-	}
-
-	public void setUpdatedAt(String updatedAt) {
-		this.updatedAt = updatedAt;
-	}
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "post_id")
+	private Post post;
 
 }

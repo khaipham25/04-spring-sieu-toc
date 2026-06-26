@@ -11,63 +11,54 @@
 
 package vn.hoidanit.springsieutoc.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import java.time.Instant;
+import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name = "posts")
 public class Post {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id; // object generic<> id == null
+	private Long id;
 
+	@NotBlank(message = "title không được để trống")
 	private String title;
+
+	@NotBlank(message = "content không được để trống")
+	@Column(columnDefinition = "MEDIUMTEXT")
 	private String content;
-	private String createdAt;
-	private String updatedAt;
 
-	public Long getId() {
-		return id;
-	}
+	private Instant createdAt;
 
-	public void setId(Long id) {
-		this.id = id;
-	}
+	private Instant updatedAt;
 
-	public String getTitle() {
-		return title;
-	}
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "user_id")
+	private User user;
 
-	public void setTitle(String title) {
-		this.title = title;
-	}
+	@OneToMany( mappedBy = "post")
+	private List<Comment> comments;
 
-	public String getContent() {
-		return content;
-	}
+	@ManyToMany
+	@JoinTable(
+			name = "post_tag",
+			joinColumns = @JoinColumn(name = "post_id"),
+			inverseJoinColumns = @JoinColumn(name = "tag_id")
+	)
+	private List<Tag> tags;
 
-	public void setContent(String content) {
-		this.content = content;
-	}
-
-	public String getCreatedAt() {
-		return createdAt;
-	}
-
-	public void setCreatedAt(String createdAt) {
-		this.createdAt = createdAt;
-	}
-
-	public String getUpdatedAt() {
-		return updatedAt;
-	}
-
-	public void setUpdatedAt(String updatedAt) {
-		this.updatedAt = updatedAt;
-	}
 
 }

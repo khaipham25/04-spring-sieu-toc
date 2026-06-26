@@ -13,19 +13,22 @@ package vn.hoidanit.springsieutoc.controller;
 
 import java.util.List;
 
+import jakarta.persistence.EntityNotFoundException;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
+import vn.hoidanit.springsieutoc.helper.ApiResponse;
 import vn.hoidanit.springsieutoc.model.User;
+import vn.hoidanit.springsieutoc.model.dto.UserRequestDTO;
+import vn.hoidanit.springsieutoc.model.dto.UserResponseDTO;
 import vn.hoidanit.springsieutoc.service.UserService;
 
-@Controller
+@RestController
 public class UserController {
 
 	// unit test
@@ -35,90 +38,42 @@ public class UserController {
 		this.userService = userService;
 	}
 
-	@GetMapping("/hoidanit")
-	public String eric(Model model) {
-
-		// gọi service, gọi database => lấy data
-		model.addAttribute("name", "hoidanit with eric"); // x <= y
-
-		return "hello";
+	@PostMapping("/users")
+	public ResponseEntity<ApiResponse<UserResponseDTO>> createUser(@Valid @RequestBody User inputUser) {
+		UserResponseDTO userInDB = userService.createUser(inputUser);
+		return ApiResponse.created(userInDB);
 	}
 
-	@GetMapping("/user")
-	public String showUser(Model model) {
-
-		// 1. HARDCODE danh sách User (thay thế cho việc gọi Service/Database)
-//		List<User> userList = Arrays.asList(new User("Nguyễn Văn A", "a.nguyen@example.com", "Hà Nội"),
-//				new User("Trần Thị B", "b.tran@example.com", "TP.HCM"),
-//				new User("Lê Văn C", "c.le@example.com", "Đà Nẵng"));
-//		model.addAttribute("users", userList); // x <= y
-
-		// cách làm sai 1
-//		UserServiceWrong1 us1 = new UserServiceWrong1();
-//		List<User> userListWrong1 = us1.fetchUsers();
-//		model.addAttribute("users", userListWrong1); // x <= y
-
-		// cách làm sai 2
-//		List<User> userListWrong2 = UserServiceWrong2.fetchUsers();
-//		model.addAttribute("users", userListWrong2); // x <= y
-
-		// cách làm đúng, sử dụng DI
-
-		List<User> userList = this.userService.fetchUsers();
-		model.addAttribute("users", userList); // x <= y
-
-		return "/user/show";
-	}
-
-	@GetMapping("/user/create")
-	public String getCreatePage(Model model) {
-		model.addAttribute("user", new User());
-		return "/user/create";
-	}
-
-	@PostMapping("/user/create")
-	public String postCreatePage(@Valid @ModelAttribute User createUser, BindingResult bindingResult) {
-
-		if (bindingResult.hasErrors()) {
-			return "/user/create";
+	@GetMapping("/users")
+	public ResponseEntity<ApiResponse<List<UserResponseDTO>>> getAllUsers(
+			@RequestParam(required = false) String role
+	) {
+		List<UserResponseDTO> users = null;
+		if (role != null) {
+			users = userService.fetchUsersWithRole(role);
+		} else {
+			users = userService.fetchUsers();
 		}
-
-		this.userService.createUser(createUser);
-		return "redirect:/user";
+		return ApiResponse.success(users);
 	}
 
-	@GetMapping("/user/{id}")
-	public String getUpdateUserPage(Model model, @PathVariable int id) {
-		// select * from user where id = input
-		User updateUser = this.userService.findUserById(id);
 
-		model.addAttribute("user", updateUser);
-		model.addAttribute("id", id);
-		return "/user/update";
+
+	@GetMapping("/users/{id}")
+	public ResponseEntity<ApiResponse<UserResponseDTO>> getUserById(@PathVariable Long id) {
+		UserResponseDTO user = userService.findUserById(id);
+		return ApiResponse.success(user);
 	}
 
-	@PostMapping("/user/update")
-	public String postUpdatePage(@Valid @ModelAttribute User updateUser, BindingResult bindingResult, Model model) {
-
-		if (bindingResult.hasErrors()) {
-			model.addAttribute("user", updateUser);
-			model.addAttribute("id", updateUser.getId());
-			return "/user/update";
-		}
-
-		this.userService.updateUser(updateUser);
-		return "redirect:/user";
+	@PutMapping("/users/{id}")
+	public ResponseEntity<ApiResponse<String>> updateUserById(@PathVariable Long id, @RequestBody UserRequestDTO inputUser) {
+		userService.updateUser(id, inputUser);
+		return ApiResponse.success("User updated successfully");
 	}
 
-	@PostMapping("/user/delete/{id}")
-	public String postDeleteUser(Model model, @PathVariable int id) {
-		this.userService.deleteUserById(id);
-		return "redirect:/user";
-	}
-
-	@GetMapping("/admin")
-	public String showAdmin() {
-
-		return "/admin/show";
+	@DeleteMapping("/users/{id}")
+	public ResponseEntity<ApiResponse<String>> deleteUserById(@PathVariable Long id) {
+		userService.deleteUserById(id);
+		return ApiResponse.success("User deleted successfully");
 	}
 }
