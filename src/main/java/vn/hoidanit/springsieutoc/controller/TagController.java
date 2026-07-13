@@ -2,9 +2,12 @@ package vn.hoidanit.springsieutoc.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import vn.hoidanit.springsieutoc.helper.ApiResponse;
+import vn.hoidanit.springsieutoc.helper.PageResponse;
 import vn.hoidanit.springsieutoc.model.Tag;
 import vn.hoidanit.springsieutoc.model.User;
 import vn.hoidanit.springsieutoc.service.TagService;
@@ -24,9 +27,9 @@ public class TagController {
     }
 
     @GetMapping("/tags")
-    public ResponseEntity<ApiResponse<List<Tag>>> getAllTag() {
-        List<Tag> tags = tagService.getAllTag();
-        return ApiResponse.success(tags);
+    public ResponseEntity<?> getAllTag(Pageable pageable) {
+        Page<Tag> tags = tagService.getAllTag(pageable);
+        return ApiResponse.success(PageResponse.from(tags));
     }
 
     @GetMapping("/tags/{id}")

@@ -5,28 +5,15 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.Instant;
-
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class CommentResponseDTO {
-    private Long id;
+public class CommentFilterRequestDTO {
 
     private String content;
 
-    private boolean isApproved;
-
-    private Instant createdAt;
-
-    private Instant updatedAt;
-
-    private Long userId;
-
     private Long postId;
 
-    private String postTitle;
-
-    private String userFullName;
+    private Integer userId;
 }

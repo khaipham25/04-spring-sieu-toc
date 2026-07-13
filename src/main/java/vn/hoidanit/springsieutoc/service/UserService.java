@@ -1,5 +1,5 @@
 /*
- * Author: Hỏi Dân IT - @hoidanit 
+ * Author: Hỏi Dân IT - @hoidanit
  *
  * This source code is developed for the course
  * "Java Spring Siêu Tốc - Tự Học Java Spring Từ Số 0 Dành Cho Beginners từ A tới Z".
@@ -16,7 +16,11 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -25,11 +29,10 @@ import vn.hoidanit.springsieutoc.helper.exception.ResourceAlreadyExistsException
 import vn.hoidanit.springsieutoc.helper.exception.ResourceNotFoundException;
 import vn.hoidanit.springsieutoc.model.Role;
 import vn.hoidanit.springsieutoc.model.User;
-import vn.hoidanit.springsieutoc.model.dto.RoleResponseDTO;
-import vn.hoidanit.springsieutoc.model.dto.UserRequestDTO;
-import vn.hoidanit.springsieutoc.model.dto.UserResponseDTO;
+import vn.hoidanit.springsieutoc.model.dto.*;
 import vn.hoidanit.springsieutoc.repository.RoleRepository;
 import vn.hoidanit.springsieutoc.repository.UserRepository;
+import vn.hoidanit.springsieutoc.service.specification.UserSpecification;
 
 @Service
 @RequiredArgsConstructor
@@ -55,17 +58,28 @@ public class UserService {
 		return userList;
 	}
 
-	public List<UserResponseDTO> fetchUsers() {
+	public Page<UserResponseDTO> fetchUsers(Pageable pageable, UserFilterRequestDTO userFilterRequestDTO) {
 		// Logic fetch user/kết nối DB thực tế sẽ ở đây
 
-		List<UserResponseDTO> userList = this.userRepository.findAll().stream().map(user ->
+		// build filter
+		Specification<User> specs = Specification
+                .allOf(
+                        // dieu kien tim kiem
+                        UserSpecification.hasName(userFilterRequestDTO),
+                        UserSpecification.hasEmail(userFilterRequestDTO),
+                        UserSpecification.hasAddress(userFilterRequestDTO),
+                        UserSpecification.hasRoleName(userFilterRequestDTO)
+
+                );
+
+		Page<UserResponseDTO> userList = this.userRepository.findAll(specs, pageable).map(user ->
 				UserResponseDTO.builder()
 						.id(user.getId())
 						.name(user.getName())
+						.email(user.getEmail())
 						.address(user.getAddress())
 						.role(new RoleResponseDTO(user.getRole().getId(), user.getRole().getName()))
-						.build()
-		).collect(Collectors.toList());
+						.build());
 		// select * from users
 
 		return userList;
@@ -135,14 +149,45 @@ public class UserService {
 	}
 
 	public void deleteUserById(Long id) {
+		User userInDB = this.userRepository.findById(id)
+				.orElseThrow(() -> new ResourceNotFoundException("User not found."));
+
+		if (userInDB.getEmail().equals("user@example.com")
+				|| userInDB.getEmail().equals("admin@example.com")) {
+
+			throw new ResourceNotFoundException(
+					"Xóa rồi, lấy gì mà test @.@ :" + userInDB.getEmail());
+		}
+
 		this.userRepository.deleteById(id);
 	}
 
-	public void testJPA() {
-		System.out.println("call jpa");
-//		Optional<User> userOpt = this.userRepository.findByName("eric1");
-		Optional<User> userOpt = this.userRepository.findByNameAndEmail("eric1", "hoidanit@example.com2");
 
-		System.out.println(userOpt.get());
+	public User findUserByEmail(String email) {
+		return this.userRepository.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException("Email not found from service"));
+
+	}
+
+	public void registerNewUser(RegisterRequestDTO inputUser) {
+		// check email
+		if (this.userRepository.existsByEmail(inputUser.getEmail())) {
+			throw new ResourceAlreadyExistsException(
+					"Email đã tồn tại: " + inputUser.getEmail());
+		}
+
+		// hardcode role = USER
+		Role userRole = this.roleRepository.findByIdOrName(null, "USER")
+				.orElseThrow(() -> new ResourceNotFoundException("USER Role not found"));
+
+		String hashPassword = this.passwordEncoder.encode(inputUser.getPassword());
+
+		User user = new User();
+		user.setPassword(hashPassword);
+		user.setRole(userRole);
+		user.setAddress(inputUser.getAddress());
+		user.setEmail(inputUser.getEmail());
+		user.setName(inputUser.getName());
+
+		userRepository.save(user);
 	}
 }

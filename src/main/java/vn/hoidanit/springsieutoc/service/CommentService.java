@@ -1,11 +1,18 @@
 package vn.hoidanit.springsieutoc.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import vn.hoidanit.springsieutoc.helper.exception.ResourceNotFoundException;
 import vn.hoidanit.springsieutoc.model.Comment;
+import vn.hoidanit.springsieutoc.model.Post;
+import vn.hoidanit.springsieutoc.model.dto.CommentFilterRequestDTO;
 import vn.hoidanit.springsieutoc.model.dto.CommentResponseDTO;
 import vn.hoidanit.springsieutoc.repository.CommentRepository;
+import vn.hoidanit.springsieutoc.service.specification.CommentSpecification;
+import vn.hoidanit.springsieutoc.service.specification.PostSpecification;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -24,6 +31,9 @@ public class CommentService {
         dto.setCreatedAt(comment.getCreatedAt());
         dto.setUpdatedAt(comment.getUpdatedAt());
         dto.setApproved(comment.isApproved());
+
+        dto.setPostTitle(comment.getPost().getTitle());
+        dto.setUserFullName(comment.getUser().getName());
         return dto;
     }
 
@@ -31,10 +41,17 @@ public class CommentService {
         return commentRepository.save(inputComment);
     }
 
-    public List<CommentResponseDTO> fetchComments() {
-        return this.commentRepository.findAll().stream().map(comment -> {
+    public Page<CommentResponseDTO> fetchComments(Pageable pageable, CommentFilterRequestDTO commentFilterRequestDTO) {
+
+        Specification<Comment> specs = Specification
+                .allOf(
+                        CommentSpecification.hasContent(commentFilterRequestDTO),
+                        CommentSpecification.hasUserId(commentFilterRequestDTO),
+                        CommentSpecification.hasPostId(commentFilterRequestDTO)
+                );
+        return this.commentRepository.findAll(specs, pageable).map(comment -> {
             return convertCommentToDTO(comment);
-        }).collect(Collectors.toList());
+        });
     }
 
     public CommentResponseDTO fetchCommentById(Long id) {

@@ -14,8 +14,13 @@ package vn.hoidanit.springsieutoc.controller;
 import java.util.List;
 
 import jakarta.persistence.EntityNotFoundException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -23,7 +28,9 @@ import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
 import vn.hoidanit.springsieutoc.helper.ApiResponse;
+import vn.hoidanit.springsieutoc.helper.PageResponse;
 import vn.hoidanit.springsieutoc.model.User;
+import vn.hoidanit.springsieutoc.model.dto.UserFilterRequestDTO;
 import vn.hoidanit.springsieutoc.model.dto.UserRequestDTO;
 import vn.hoidanit.springsieutoc.model.dto.UserResponseDTO;
 import vn.hoidanit.springsieutoc.service.UserService;
@@ -45,16 +52,13 @@ public class UserController {
 	}
 
 	@GetMapping("/users")
-	public ResponseEntity<ApiResponse<List<UserResponseDTO>>> getAllUsers(
-			@RequestParam(required = false) String role
+	public ResponseEntity<?> getAllUsers(
+			UserFilterRequestDTO userFilterRequestDTO,
+			Pageable pageable
 	) {
-		List<UserResponseDTO> users = null;
-		if (role != null) {
-			users = userService.fetchUsersWithRole(role);
-		} else {
-			users = userService.fetchUsers();
-		}
-		return ApiResponse.success(users);
+		System.out.println("userFilterRequestDTO = " + userFilterRequestDTO);
+		Page<UserResponseDTO> users = userService.fetchUsers(pageable, userFilterRequestDTO);
+		return ApiResponse.success(PageResponse.from(users));
 	}
 
 
@@ -66,7 +70,7 @@ public class UserController {
 	}
 
 	@PutMapping("/users/{id}")
-	public ResponseEntity<ApiResponse<String>> updateUserById(@PathVariable Long id, @RequestBody UserRequestDTO inputUser) {
+	public ResponseEntity<ApiResponse<String>> updateUserById(@PathVariable Long id,@Valid @RequestBody UserRequestDTO inputUser) {
 		userService.updateUser(id, inputUser);
 		return ApiResponse.success("User updated successfully");
 	}

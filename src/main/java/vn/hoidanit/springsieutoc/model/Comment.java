@@ -49,4 +49,16 @@ public class Comment {
 	@JoinColumn(name = "post_id")
 	private Post post;
 
+	public Comment(String content, User user, Post post) {
+		this.content = content;
+		this.user = user;
+		this.post = post;
+		this.isApproved = true;
+	}
+
+	@PrePersist
+	public void beforeCreate() {
+		this.createdAt = Instant.now();
+		this.updatedAt = Instant.now();
+	}
 }

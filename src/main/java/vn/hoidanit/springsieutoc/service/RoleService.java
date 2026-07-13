@@ -1,6 +1,8 @@
 package vn.hoidanit.springsieutoc.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import vn.hoidanit.springsieutoc.helper.exception.ResourceAlreadyExistsException;
 import vn.hoidanit.springsieutoc.helper.exception.ResourceNotFoundException;
@@ -22,8 +24,11 @@ public class RoleService {
         return roleRepository.save(inputRole);
     }
 
-    public List<Role> getAllRole() {
-        return roleRepository.findAll();
+    public Page<Role> getAllRole(Pageable pageable) {
+        return roleRepository.findAll(pageable)
+                .map(role -> {
+                    return new Role(role.getId(), role.getName(), role.getDescription(), null);
+                });
     }
 
     public Role getRoleById(Long id){

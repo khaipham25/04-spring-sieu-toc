@@ -2,9 +2,13 @@ package vn.hoidanit.springsieutoc.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import vn.hoidanit.springsieutoc.helper.ApiResponse;
+import vn.hoidanit.springsieutoc.helper.PageResponse;
+import vn.hoidanit.springsieutoc.model.dto.PostFilterRequestDTO;
 import vn.hoidanit.springsieutoc.model.dto.PostRequestDTO;
 import vn.hoidanit.springsieutoc.model.dto.PostResponseDTO;
 import vn.hoidanit.springsieutoc.service.PostService;
@@ -24,9 +28,12 @@ public class PostController {
     }
 
     @GetMapping("/posts")
-    public ResponseEntity<ApiResponse<List<PostResponseDTO>>> getPosts() {
-        List<PostResponseDTO> posts = this.postService.fetchPosts();
-        return ApiResponse.success(posts);
+    public ResponseEntity<?> getPosts(
+            Pageable pageable,
+            PostFilterRequestDTO postFilterRequestDTO
+    ) {
+        Page<PostResponseDTO> posts = this.postService.fetchPosts(pageable, postFilterRequestDTO);
+        return ApiResponse.success(PageResponse.from(posts));
     }
 
     @GetMapping("/posts/{id}")

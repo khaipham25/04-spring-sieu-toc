@@ -1,6 +1,8 @@
 package vn.hoidanit.springsieutoc.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import vn.hoidanit.springsieutoc.helper.exception.ResourceAlreadyExistsException;
 import vn.hoidanit.springsieutoc.helper.exception.ResourceNotFoundException;
@@ -27,8 +29,9 @@ public class TagService {
 
     }
 
-    public List<Tag> getAllTag() {
-        return tagRepository.findAll();
+    public Page<Tag> getAllTag(Pageable  pageable) {
+        return tagRepository.findAll(pageable)
+                .map(t -> new Tag(t.getId(), t.getName(), null));
     }
 
     public Tag findTagById(Long id) {

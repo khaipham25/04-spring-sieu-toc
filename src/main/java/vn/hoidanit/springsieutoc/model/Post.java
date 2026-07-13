@@ -21,6 +21,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import vn.hoidanit.springsieutoc.helper.SecurityUtil;
 
 @Getter
 @Setter
@@ -59,6 +60,28 @@ public class Post {
 			inverseJoinColumns = @JoinColumn(name = "tag_id")
 	)
 	private List<Tag> tags;
+
+	public Post(String title, String content, User user) {
+		this.title = title;
+		this.content = content;
+		this.user = user;
+	}
+
+	// Trước khi post/insert Post thì chạy hàm nafy
+	@PrePersist
+	public void beforeCreate() {
+		this.createdAt = Instant.now();
+		this.updatedAt = Instant.now();
+
+		// tức là thay vì nhận user từ post thì ta phải lấy user từ acccessToken lưu vào DB mới chuẩn nhất, chặn hacker gửi 1 request chứa user khác
+		if (SecurityUtil.getCurrentIdLogin().isPresent()) {
+			User u = new User();
+			Long userId = SecurityUtil.getCurrentIdLogin().get();
+			u.setId(userId);
+
+			this.user = u;
+		}
+	}
 
 
 }

@@ -2,10 +2,14 @@ package vn.hoidanit.springsieutoc.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import vn.hoidanit.springsieutoc.helper.ApiResponse;
+import vn.hoidanit.springsieutoc.helper.PageResponse;
 import vn.hoidanit.springsieutoc.model.Comment;
+import vn.hoidanit.springsieutoc.model.dto.CommentFilterRequestDTO;
 import vn.hoidanit.springsieutoc.model.dto.CommentResponseDTO;
 import vn.hoidanit.springsieutoc.service.CommentService;
 
@@ -23,9 +27,12 @@ public class CommentController {
     }
 
     @GetMapping("/comments")
-    public ResponseEntity<ApiResponse<List<CommentResponseDTO>>> getComments() {
-        List<CommentResponseDTO> comments = this.commentService.fetchComments();
-        return ApiResponse.success(comments);
+    public ResponseEntity<?> getComments(
+            Pageable pageable,
+            CommentFilterRequestDTO commentFilterRequestDTO
+    ) {
+        Page<CommentResponseDTO> comments = this.commentService.fetchComments(pageable, commentFilterRequestDTO);
+        return ApiResponse.success(PageResponse.from(comments));
     }
 
     @GetMapping("/comments/{id}")

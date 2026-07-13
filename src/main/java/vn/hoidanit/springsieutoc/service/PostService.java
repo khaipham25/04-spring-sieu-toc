@@ -1,14 +1,20 @@
 package vn.hoidanit.springsieutoc.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import vn.hoidanit.springsieutoc.helper.exception.ResourceNotFoundException;
 import vn.hoidanit.springsieutoc.model.Post;
 import vn.hoidanit.springsieutoc.model.Tag;
 import vn.hoidanit.springsieutoc.model.User;
+import vn.hoidanit.springsieutoc.model.dto.PostFilterRequestDTO;
 import vn.hoidanit.springsieutoc.model.dto.PostRequestDTO;
 import vn.hoidanit.springsieutoc.model.dto.PostResponseDTO;
 import vn.hoidanit.springsieutoc.repository.PostRepository;
+import vn.hoidanit.springsieutoc.service.specification.PostSpecification;
+import vn.hoidanit.springsieutoc.service.specification.UserSpecification;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -41,6 +47,9 @@ public class PostService {
         dto.setId(post.getId());
         dto.setTitle(post.getTitle());
         dto.setContent(post.getContent());
+        dto.setAuthorName(post.getUser().getName());
+        dto.setCreatedAt(post.getCreatedAt());
+        dto.setUpdatedAt(post.getUpdatedAt());
 
         List<PostResponseDTO.OutputTag> tags = post.getTags().stream().map(tag -> {
             PostResponseDTO.OutputTag t = new PostResponseDTO.OutputTag();
@@ -60,10 +69,23 @@ public class PostService {
         return convertPostToDTO(post);
     }
 
-    public List<PostResponseDTO> fetchPosts() {
-        return this.postRepository.findAll().stream().map(post -> {
+    public Page<PostResponseDTO> fetchPosts(Pageable pageable, PostFilterRequestDTO pFilterRequestDTO) {
+
+        Specification<Post> specs = Specification
+                .allOf(
+                        // dieu kien tim kiem
+                        PostSpecification.hasTitle(pFilterRequestDTO),
+                        PostSpecification.hasUserId(pFilterRequestDTO),
+                        PostSpecification.hasTagsIn(pFilterRequestDTO),
+                        PostSpecification.createdAtBetween(pFilterRequestDTO),
+                        PostSpecification.updatedAtBetween(pFilterRequestDTO)
+
+
+                );
+
+        return this.postRepository.findAll(specs, pageable).map(post -> {
             return convertPostToDTO(post);
-        }).collect(Collectors.toList());
+        });
     }
 
     public PostResponseDTO fetchPostById(Long id) {

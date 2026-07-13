@@ -1,5 +1,6 @@
 package vn.hoidanit.springsieutoc.model.dto;
 
+import java.time.Instant;
 import java.util.List;
 
 import lombok.AllArgsConstructor;
@@ -19,6 +20,10 @@ public class PostResponseDTO {
     private String content;
 
     private List<OutputTag> tags;
+
+    private Instant createdAt;
+    private Instant updatedAt;
+    private String authorName;
 
     @Getter
     @Setter
