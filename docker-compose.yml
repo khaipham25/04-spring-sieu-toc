@@ -1,0 +1,30 @@
+
+services:
+  mysqldb:
+    image: mysql:8.0
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD=123456
+    expose:
+      - "3306"
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  backend-api:
+    build: .
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mysqldb
+
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysqldb:3306/hoidanitdocker?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=123456
+      - SPRING_PROFILES_ACTIVE=prod
+volumes:
+  mysql_data:
+
+# docker compose -p hoidanit-springsieutoc up -d
