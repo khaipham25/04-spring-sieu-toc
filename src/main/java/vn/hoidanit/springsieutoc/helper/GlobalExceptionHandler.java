@@ -34,7 +34,7 @@ public class GlobalExceptionHandler {
     // Lỗi id ko đúng định dạng
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<?> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
-        String errorMessage = String.format("Tham số '%s' có giá trị '%s' không đúng định dạng.", ex.getName(), ex.getValue());
+        String errorMessage = "Tham số '%s' có giá trị '%s' không đúng định dạng.".formatted(ex.getName(), ex.getValue());
         return ApiResponse.error(HttpStatus.BAD_REQUEST, errorMessage);
     }
 
